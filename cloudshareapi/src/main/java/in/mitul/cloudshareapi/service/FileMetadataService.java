@@ -115,24 +115,34 @@ public class FileMetadataService {
     }
 
     public FileMetadataDTO getDownloadableFile(String id) {
-        System.out.println("Getting downloadable file with ID: " + id);
+        System.out.println("Getting downloadable file (public) with ID: " + id);
         FileMetadataDocument file = fileMetadataRepository.findById(id).orElseThrow(() -> new RuntimeException("File not found"));
         
         System.out.println("File found: " + file.getName() + ", isPublic: " + file.getIsPublic());
         
-        // Check if file is public or belongs to current user
-        ProfileDocument currentProfile = profileService.getCurrentProfileOrNull();
-        boolean isOwner = currentProfile != null && file.getClerkId().equals(currentProfile.getClerkId());
-        
-        System.out.println("Current profile: " + (currentProfile != null ? currentProfile.getClerkId() : "null") + 
-                          ", File owner: " + file.getClerkId() + ", isOwner: " + isOwner);
-        
-        if (!file.getIsPublic() && !isOwner) {
-            System.err.println("Access denied: File is not public and user is not owner");
-            throw new RuntimeException("Access denied. File is not public.");
+        // For public downloads, ONLY allow if file is marked as public
+        if (!file.getIsPublic()) {
+            System.err.println("Access denied: File is not public");
+            throw new RuntimeException("Access denied. This file is private and cannot be downloaded via public link.");
         }
         
-        System.out.println("Access granted for file download");
+        System.out.println("Access granted for public file download");
+        return mapToDTO(file);
+    }
+
+    public FileMetadataDTO getDownloadableFileForOwner(String id) {
+        System.out.println("Getting downloadable file for owner with ID: " + id);
+        FileMetadataDocument file = fileMetadataRepository.findById(id).orElseThrow(() -> new RuntimeException("File not found"));
+        
+        ProfileDocument currentProfile = profileService.getCurrentProfile();
+        
+        // Verify the user owns this file
+        if (!file.getClerkId().equals(currentProfile.getClerkId())) {
+            System.err.println("Access denied: User does not own this file");
+            throw new RuntimeException("Access denied. You do not have permission to download this file.");
+        }
+        
+        System.out.println("Access granted for owner file download (private or public allowed)");
         return mapToDTO(file);
     }
 

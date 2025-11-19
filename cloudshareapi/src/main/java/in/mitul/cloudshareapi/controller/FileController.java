@@ -58,9 +58,9 @@ public class FileController {
     }
 
     @GetMapping("/download/{id}")
-    public ResponseEntity<?> download(@PathVariable String id) throws IOException {
-        System.out.println("=== DOWNLOAD ENDPOINT HIT ===");
-        System.out.println("Download request received for file ID: " + id);
+    public ResponseEntity<?> downloadPublicFile(@PathVariable String id) throws IOException {
+        System.out.println("=== PUBLIC DOWNLOAD ENDPOINT HIT ===");
+        System.out.println("Public download request for file ID: " + id);
         try {
             FileMetadataDTO downloadbleFile = fileMetadataService.getDownloadableFile(id);
             System.out.println("File found: " + downloadbleFile.getName() + ", isPublic: " + downloadbleFile.getIsPublic());
@@ -72,15 +72,42 @@ public class FileController {
                 return ResponseEntity.notFound().build();
             }
 
-            System.out.println("Sending file: " + downloadbleFile.getName());
+            System.out.println("Sending public file: " + downloadbleFile.getName());
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\""+downloadbleFile.getName()+"\"")
                     .body(resource);
         } catch (Exception e) {
-            System.err.println("Download failed for file ID " + id + ": " + e.getMessage());
+            System.err.println("Public download failed for file ID " + id + ": " + e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.status(500).body("Download failed: " + e.getMessage());
+            return ResponseEntity.status(403).body("Download failed: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/download-my/{id}")
+    public ResponseEntity<?> downloadMyFile(@PathVariable String id) throws IOException {
+        System.out.println("=== OWNER DOWNLOAD ENDPOINT HIT ===");
+        System.out.println("Owner download request for file ID: " + id);
+        try {
+            FileMetadataDTO downloadbleFile = fileMetadataService.getDownloadableFileForOwner(id);
+            System.out.println("File found: " + downloadbleFile.getName());
+            Path path = Paths.get(downloadbleFile.getFileLocation());
+            Resource resource = new UrlResource(path.toUri());
+
+            if (!resource.exists() || !resource.isReadable()) {
+                System.err.println("File not found or not readable: " + path);
+                return ResponseEntity.notFound().build();
+            }
+
+            System.out.println("Sending owner file: " + downloadbleFile.getName());
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\""+downloadbleFile.getName()+"\"")
+                    .body(resource);
+        } catch (Exception e) {
+            System.err.println("Owner download failed for file ID " + id + ": " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(403).body("Download failed: " + e.getMessage());
         }
     }
 
