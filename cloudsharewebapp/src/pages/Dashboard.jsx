@@ -101,6 +101,11 @@ const Dashboard = () => {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'multipart/form-data'
+                },
+                timeout: 300000, // 5 minutes timeout for large files
+                onUploadProgress: (progressEvent) => {
+                    const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                    console.log(`Upload Progress: ${percentCompleted}%`);
                 }
             });
 
@@ -135,21 +140,28 @@ const Dashboard = () => {
 
     return (
         <DashboardLayout activeMenu="Dashboard">
-            <div className="p-6">
-                <h1 className="text-2xl font-bold mb-6">My Drive</h1>
-                <p className="text-gray-600 mb-6">Upload, manage, and share your files securely</p>
+            <div className="p-6 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 min-h-screen">
+                <div className="animate-fade-in-down mb-8">
+                    <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">My Drive</h1>
+                    <p className="text-gray-600 text-lg">Upload, manage, and share your files securely</p>
+                </div>
                 {message && (
-                    <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
-                        messageType === 'error' ? 'bg-red-50 text-red-700' :
-                            messageType === 'success' ? 'bg-green-50 text-green-700' :
-                                'bg-purple-50 text-purple-700'
+                    <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 animate-slide-in-right shadow-lg border ${
+                        messageType === 'error' ? 'bg-red-50 text-red-700 border-red-200' :
+                            messageType === 'success' ? 'bg-green-50 text-green-700 border-green-200' :
+                                'bg-blue-50 text-blue-700 border-blue-200'
                     }`}>
-                        {message}
+                        <div className={`w-1 h-12 rounded-full ${
+                            messageType === 'error' ? 'bg-red-500' :
+                                messageType === 'success' ? 'bg-green-500' :
+                                    'bg-blue-500'
+                        }`}></div>
+                        <span className="font-medium">{message}</span>
                     </div>
                 )}
                 <div className="flex flex-col md:flex-row gap-6">
                     {/*Left column*/}
-                    <div className="w-full md:w-[40%]">
+                    <div className="w-full md:w-[40%] animate-fade-in-up animation-delay-100">
                         <DashboardUpload
                             files={uploadFiles}
                             onFileChange={handleFileChange}
@@ -161,11 +173,14 @@ const Dashboard = () => {
                     </div>
 
                     {/*right column*/}
-                    <div className="w-full md:w-[60%]">
+                    <div className="w-full md:w-[60%] animate-fade-in-up animation-delay-200">
                         {loading ? (
-                            <div className="bg-white rounded-lg shadow p-8 flex flex-col items-center justify-center min-h-[300px]">
-                                <Loader2 size={40} className="text-purple-500 animate-spin mb-4" />
-                                <p className="text-gray-500">Loading your files...</p>
+                            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 flex flex-col items-center justify-center min-h-[300px]">
+                                <div className="relative">
+                                    <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full blur-xl opacity-30 animate-pulse"></div>
+                                    <Loader2 size={48} className="text-blue-600 animate-spin mb-4 relative" />
+                                </div>
+                                <p className="text-gray-600 font-medium">Loading your files...</p>
                             </div>
                         ) : (
                             <RecentFiles files={files} />

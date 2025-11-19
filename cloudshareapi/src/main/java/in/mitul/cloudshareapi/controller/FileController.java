@@ -32,8 +32,10 @@ public class FileController {
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFiles(@RequestPart("files") MultipartFile files[]) throws IOException {
+        System.out.println("Mitul......");
         System.out.println("Called ");
         Map<String, Object> response = new HashMap<>();
+        System.out.println("File Uploaded...");
         List<FileMetadataDTO> list = fileMetadataService.uploadFiles(files);
 
         UserCredits finalCredits = userCreditsService.getUserCredits();
@@ -57,6 +59,7 @@ public class FileController {
 
     @GetMapping("/download/{id}")
     public ResponseEntity<Resource> download(@PathVariable String id) throws IOException {
+        System.out.println("Downloading...");
         FileMetadataDTO downloadbleFile = fileMetadataService.getDownloadableFile(id);
         Path path = Paths.get(downloadbleFile.getFileLocation());
         Resource resource = new UrlResource(path.toUri());

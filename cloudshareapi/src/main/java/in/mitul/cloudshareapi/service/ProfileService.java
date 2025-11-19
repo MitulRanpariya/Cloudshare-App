@@ -121,4 +121,19 @@ public class ProfileService {
         
         return profile;
     }
+
+    public ProfileDocument getCurrentProfileOrNull() {
+        try {
+            if (SecurityContextHolder.getContext().getAuthentication() == null || 
+                SecurityContextHolder.getContext().getAuthentication().getName() == null ||
+                SecurityContextHolder.getContext().getAuthentication().getName().equals("anonymousUser")) {
+                return null;
+            }
+
+            String clerkId = SecurityContextHolder.getContext().getAuthentication().getName();
+            return profileRepository.findByClerkId(clerkId);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 }

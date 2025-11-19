@@ -116,6 +116,15 @@ public class FileMetadataService {
 
     public FileMetadataDTO getDownloadableFile(String id) {
         FileMetadataDocument file = fileMetadataRepository.findById(id).orElseThrow(() -> new RuntimeException("File not found"));
+        
+        // Check if file is public or belongs to current user
+        ProfileDocument currentProfile = profileService.getCurrentProfileOrNull();
+        boolean isOwner = currentProfile != null && file.getClerkId().equals(currentProfile.getClerkId());
+        
+        if (!file.getIsPublic() && !isOwner) {
+            throw new RuntimeException("Access denied. File is not public.");
+        }
+        
         return mapToDTO(file);
     }
 
