@@ -58,7 +58,7 @@ const MyFiles = () => {
     const handleDownload = async (file) => {
         try {
             const token = await getToken();
-            const response = await axios.get(apiEndpoints.DOWNLOAD_FILE(file.id), {headers: {Authorization: `Bearer ${token}`}, responseType: 'blob'});
+            const response = await axios.get(apiEndpoints.DOWNLOAD_MY_FILE(file.id), {headers: {Authorization: `Bearer ${token}`}, responseType: 'blob'});
 
             // create a blob url and trigger download
             const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -71,7 +71,7 @@ const MyFiles = () => {
             window.URL.revokeObjectURL(url); // clean up the object url
         }catch (error) {
             console.error('Download failed', error);
-            toast.error('Error downloading file', error.message);
+            toast.error('Error downloading file: ' + (error.response?.data || error.message));
         }
     }
 
