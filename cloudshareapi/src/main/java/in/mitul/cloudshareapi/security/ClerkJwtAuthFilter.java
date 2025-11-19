@@ -36,10 +36,11 @@ public class ClerkJwtAuthFilter extends OncePerRequestFilter {
         String requestURI = request.getRequestURI();
         System.out.println("ClerkJwtAuthFilter - Request URI: " + requestURI);
 
-        // For webhook endpoints, skip JWT validation and continue the filter chain
+        // For webhook endpoints and public file downloads, skip JWT validation and continue the filter chain
+        // Note: /files/download/{id} is public, but /files/download-my/{id} requires authentication
         if (requestURI.contains("/webhooks") ||
                 requestURI.contains("/public") ||
-                requestURI.contains("/download") ||
+                requestURI.matches(".*/files/download/[^/]+$") ||
                 requestURI.contains("/health")) {
             System.out.println("ClerkJwtAuthFilter - Skipping JWT validation for: " + requestURI);
             filterChain.doFilter(request, response);
