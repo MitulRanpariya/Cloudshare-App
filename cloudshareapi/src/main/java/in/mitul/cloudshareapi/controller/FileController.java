@@ -58,7 +58,8 @@ public class FileController {
     }
 
     @GetMapping("/download/{id}")
-    public ResponseEntity<Resource> download(@PathVariable String id) throws IOException {
+    public ResponseEntity<?> download(@PathVariable String id) throws IOException {
+        System.out.println("=== DOWNLOAD ENDPOINT HIT ===");
         System.out.println("Download request received for file ID: " + id);
         try {
             FileMetadataDTO downloadbleFile = fileMetadataService.getDownloadableFile(id);
@@ -66,13 +67,20 @@ public class FileController {
             Path path = Paths.get(downloadbleFile.getFileLocation());
             Resource resource = new UrlResource(path.toUri());
 
+            if (!resource.exists() || !resource.isReadable()) {
+                System.err.println("File not found or not readable: " + path);
+                return ResponseEntity.notFound().build();
+            }
+
+            System.out.println("Sending file: " + downloadbleFile.getName());
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\""+downloadbleFile.getName()+"\"")
                     .body(resource);
         } catch (Exception e) {
             System.err.println("Download failed for file ID " + id + ": " + e.getMessage());
-            throw e;
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Download failed: " + e.getMessage());
         }
     }
 

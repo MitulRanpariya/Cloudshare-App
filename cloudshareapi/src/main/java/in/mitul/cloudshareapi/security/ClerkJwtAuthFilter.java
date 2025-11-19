@@ -33,15 +33,20 @@ public class ClerkJwtAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String requestURI = request.getRequestURI();
+        System.out.println("ClerkJwtAuthFilter - Request URI: " + requestURI);
 
         // For webhook endpoints, skip JWT validation and continue the filter chain
-        if (request.getRequestURI().contains("/webhooks") ||
-                request.getRequestURI().contains("/public") ||
-                    request.getRequestURI().contains("/download") ||
-                        request.getRequestURI().contains("/health")) {
+        if (requestURI.contains("/webhooks") ||
+                requestURI.contains("/public") ||
+                requestURI.contains("/download") ||
+                requestURI.contains("/health")) {
+            System.out.println("ClerkJwtAuthFilter - Skipping JWT validation for: " + requestURI);
             filterChain.doFilter(request, response);
             return;
         }
+        
+        System.out.println("ClerkJwtAuthFilter - Requiring JWT validation for: " + requestURI);
 
         String authHeader = request.getHeader("Authorization");
 
