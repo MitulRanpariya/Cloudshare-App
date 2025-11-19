@@ -115,16 +115,24 @@ public class FileMetadataService {
     }
 
     public FileMetadataDTO getDownloadableFile(String id) {
+        System.out.println("Getting downloadable file with ID: " + id);
         FileMetadataDocument file = fileMetadataRepository.findById(id).orElseThrow(() -> new RuntimeException("File not found"));
+        
+        System.out.println("File found: " + file.getName() + ", isPublic: " + file.getIsPublic());
         
         // Check if file is public or belongs to current user
         ProfileDocument currentProfile = profileService.getCurrentProfileOrNull();
         boolean isOwner = currentProfile != null && file.getClerkId().equals(currentProfile.getClerkId());
         
+        System.out.println("Current profile: " + (currentProfile != null ? currentProfile.getClerkId() : "null") + 
+                          ", File owner: " + file.getClerkId() + ", isOwner: " + isOwner);
+        
         if (!file.getIsPublic() && !isOwner) {
+            System.err.println("Access denied: File is not public and user is not owner");
             throw new RuntimeException("Access denied. File is not public.");
         }
         
+        System.out.println("Access granted for file download");
         return mapToDTO(file);
     }
 

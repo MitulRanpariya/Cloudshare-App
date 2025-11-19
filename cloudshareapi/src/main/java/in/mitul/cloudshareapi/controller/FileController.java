@@ -59,15 +59,21 @@ public class FileController {
 
     @GetMapping("/download/{id}")
     public ResponseEntity<Resource> download(@PathVariable String id) throws IOException {
-        System.out.println("Downloading...");
-        FileMetadataDTO downloadbleFile = fileMetadataService.getDownloadableFile(id);
-        Path path = Paths.get(downloadbleFile.getFileLocation());
-        Resource resource = new UrlResource(path.toUri());
+        System.out.println("Download request received for file ID: " + id);
+        try {
+            FileMetadataDTO downloadbleFile = fileMetadataService.getDownloadableFile(id);
+            System.out.println("File found: " + downloadbleFile.getName() + ", isPublic: " + downloadbleFile.getIsPublic());
+            Path path = Paths.get(downloadbleFile.getFileLocation());
+            Resource resource = new UrlResource(path.toUri());
 
-        return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachemnt; filename=\""+downloadbleFile.getName()+"\"")
-                .body(resource);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\""+downloadbleFile.getName()+"\"")
+                    .body(resource);
+        } catch (Exception e) {
+            System.err.println("Download failed for file ID " + id + ": " + e.getMessage());
+            throw e;
+        }
     }
 
     @DeleteMapping("/{id}")
